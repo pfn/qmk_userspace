@@ -1,11 +1,14 @@
 #include QMK_KEYBOARD_H
 
 #define NUMLOCK_TIMEOUT 800
-#define NUMPAD 1
+
+uint8_t numpad_layer = 1;
 
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case RCTL_T(KC_QUOT):
+        // these for chocofi
+        case RCTL_T(KC_SCLN):
             return true;
         default:
             return false;
@@ -15,6 +18,9 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case LCTL_T(KC_TAB):
+        // these for 3x5 keebs
+        case LSFT_T(KC_Z):
+        case RSFT_T(KC_SLSH):
             return true;
         default:
             return false;
@@ -122,7 +128,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case KC_1 ... KC_0:
         if (record->event.pressed) {
             register_code(keycode);
-            if (get_oneshot_layer() == NUMPAD) {
+            if (get_oneshot_layer() == numpad_layer) {
                 num_lock_timer = timer_read();
             }
         } else {
@@ -178,7 +184,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return true;
         }
     }
-    if (get_oneshot_layer() == NUMPAD) {
+    if (get_oneshot_layer() == numpad_layer) {
         num_lock_timer = 0;
         // make sure to turn off the layer, doesn't always get turned off
         clear_oneshot_layer_state(ONESHOT_PRESSED);
@@ -190,7 +196,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 void oneshot_layer_changed_user(uint8_t layer) {
     // set oneshot layer back on when it gets turned off by keypress
     if (!layer && num_lock_timer) {
-        set_oneshot_layer(NUMPAD, ONESHOT_START);
+        set_oneshot_layer(numpad_layer, ONESHOT_START);
     }
 }
 
