@@ -3,12 +3,14 @@
 #define NUMLOCK_TIMEOUT 800
 
 uint8_t numpad_layer = 1;
+uint8_t sym_layer = 2;
 
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case RCTL_T(KC_QUOT):
         // these for chocofi
         case RCTL_T(KC_SCLN):
+        case RCTL_T(KC_O): // colemak
             return true;
         default:
             return false;
@@ -16,7 +18,14 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+    if (keycode == LT(numpad_layer, KC_BSPC) || keycode == LT(sym_layer, KC_ESC))
+        return true;
+
     switch (keycode) {
+        case KC_ESC:
+        case KC_BSPC:
+        case KC_MPRV:
+        case KC_MNXT:
         case LCTL_T(KC_TAB):
         // these for 3x5 keebs
         case LSFT_T(KC_Z):
