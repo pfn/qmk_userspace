@@ -5,6 +5,9 @@
 uint8_t numpad_layer = 1;
 uint8_t sym_layer = 2;
 
+uint16_t num_lock_timer = 0;
+uint8_t mod_held = KC_NO;
+
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case RCTL_T(KC_QUOT):
@@ -121,11 +124,13 @@ void process_caps_word(uint16_t keycode, const keyrecord_t *record) {
     }
 }
 
-uint16_t num_lock_timer = 0;
-
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    process_caps_word(keycode, record);
+    if (mod_held != KC_NO) {
+        unregister_code(mod_held);
+        mod_held = KC_NO;
+    }
 
+    process_caps_word(keycode, record);
     uint8_t mod_state = get_mods();
     switch (keycode) {
     case KC_PDOT:
