@@ -17,7 +17,6 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
             return true;
         // these for 3x5 keebs
         case LSFT_T(KC_Z):
-        case RSFT_T(KC_SLSH):
             return true;
         default:
             return false;
@@ -34,6 +33,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
         case KC_MPRV:
         case KC_MNXT:
         case LCTL_T(KC_TAB):
+        case RSFT_T(KC_SLSH):
             return true;
         default:
             return false;
