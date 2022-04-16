@@ -4,6 +4,7 @@
 
 uint8_t numpad_layer = 1;
 uint8_t sym_layer = 2;
+uint8_t mouse_layer = 5;
 
 uint16_t num_lock_timer = 0;
 uint8_t mod_held = KC_NO;
@@ -24,14 +25,12 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
-    if (keycode == LT(numpad_layer, KC_BSPC) || keycode == LT(sym_layer, KC_ESC))
+    if (keycode == LT(numpad_layer, KC_BSPC)
+     || keycode == LT(sym_layer, KC_ESC)
+     || keycode == LT(mouse_layer, KC_QUOT))
         return true;
 
     switch (keycode) {
-        case KC_ESC:
-        case KC_BSPC:
-        case KC_MPRV:
-        case KC_MNXT:
         case LCTL_T(KC_TAB):
         case RSFT_T(KC_SLSH):
             return true;
