@@ -39,6 +39,16 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
+bool get_tapping_force_hold(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LSFT_T(KC_Z):
+        case RSFT_T(KC_SLSH):
+            return true;
+        default:
+            return false;
+    }
+}
+
 // looks like reappropriating existing keycodes crashes qmk, don't do this...
 //qk_tap_dance_action_t tap_dance_actions[] = {
 //    [KC_F13] = ACTION_TAP_DANCE_DOUBLE(KC_VOLD, KC_MUTE)
