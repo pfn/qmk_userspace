@@ -16,9 +16,6 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
         case RCTL_T(KC_SCLN):
         case RCTL_T(KC_O): // colemak
             return true;
-        // these for 3x5 keebs
-        case LSFT_T(KC_Z):
-            return true;
         default:
             return false;
     }
@@ -31,6 +28,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
         return true;
 
     switch (keycode) {
+        case LSFT_T(KC_Z):
         case LCTL_T(KC_TAB):
         case RSFT_T(KC_SLSH):
             return true;
@@ -40,6 +38,9 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool get_tapping_force_hold(uint16_t keycode, keyrecord_t *record) {
+    if (keycode == LT(sym_layer, KC_ESC))
+        return true;
+
     switch (keycode) {
         case LSFT_T(KC_Z):
         case RSFT_T(KC_SLSH):
@@ -190,7 +191,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             static bool delkey_registered;
             if (record->event.pressed) {
                 if (mod_state & MOD_MASK_SHIFT) {
-                    if (!(mod_state & MOD_BIT(KC_LSHIFT)) != !(mod_state & MOD_BIT(KC_RSHIFT))) {
+                    if (!(mod_state & MOD_BIT(KC_LSFT)) != !(mod_state & MOD_BIT(KC_RSFT))) {
                         del_mods(MOD_MASK_SHIFT);
                     }
                     register_code(KC_DEL);
