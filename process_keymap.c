@@ -1,10 +1,12 @@
 #include QMK_KEYBOARD_H
+#include "process_keymap.h"
 
 #define NUMLOCK_TIMEOUT 800
 
 uint8_t numpad_layer = 1;
 uint8_t sym_layer = 2;
 uint8_t mouse_layer = 5;
+bool is_scrolling = false;
 
 uint16_t num_lock_timer = 0;
 uint8_t mod_held = KC_NO;
@@ -144,6 +146,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     process_caps_word(keycode, record);
     uint8_t mod_state = get_mods();
     switch (keycode) {
+    case DRAG_SCROLL:
+        if (record->event.pressed) {
+            is_scrolling = !is_scrolling;
+        }
+        break;
     case KC_PDOT:
     case KC_PPLS:
     case KC_PMNS:
