@@ -146,11 +146,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     process_caps_word(keycode, record);
     uint8_t mod_state = get_mods();
     switch (keycode) {
-    case DRAG_SCROLL:
-        if (record->event.pressed) {
-            is_scrolling = !is_scrolling;
-        }
-        break;
     case KC_PDOT:
     case KC_PPLS:
     case KC_PMNS:
