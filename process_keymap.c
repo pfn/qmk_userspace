@@ -93,6 +93,7 @@ void process_caps_word(uint16_t keycode, const keyrecord_t *record) {
         }
 
         switch (keycode) {
+            case KC_1 ... KC_0: // numbers shouldn't cancel
             // prevent canceling caps word on layer shift keys that wouldn't otherwise cancel
             case QK_MOMENTARY ... QK_MOMENTARY_MAX:
             // keep shift-spc from cancelling caps word
