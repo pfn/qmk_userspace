@@ -161,7 +161,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case KC_PAST:
     case KC_EQL: // KC_PEQL is not usable?
     case KC_DOT:
-    case KC_PLUS:
     case KC_1 ... KC_0:
         if (record->event.pressed) {
             register_code(keycode);
@@ -228,7 +227,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case KC_PAST:
     case KC_EQL: // KC_PEQL is not usable?
     case KC_DOT:
-    case KC_PLUS:
     case KC_1 ... KC_0:
         break;
     default:
