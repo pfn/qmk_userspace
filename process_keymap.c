@@ -143,6 +143,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         unregister_code(mod_held);
         mod_held = KC_NO;
     }
+    if (IS_QK_ONE_SHOT_LAYER(keycode) && QK_ONE_SHOT_LAYER_GET_LAYER(keycode) == numpad_layer) {
+        if (record->event.pressed && !host_keyboard_led_state().num_lock) {
+            tap_code(KC_NUM);
+            num_lock_timer = timer_read();
+        }
+        return true;
+    }
 
     process_caps_word(keycode, record);
     uint8_t mod_state = get_mods();
@@ -153,6 +160,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case KC_PSLS:
     case KC_PAST:
     case KC_EQL: // KC_PEQL is not usable?
+    case KC_DOT:
+    case KC_PLUS:
     case KC_1 ... KC_0:
         if (record->event.pressed) {
             register_code(keycode);
@@ -163,7 +172,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             unregister_code(keycode);
         }
         return false;
-        break;
     case KC_CAPS: // CAPS_WORD
         // Toggle `caps_word_on`
         if (record->event.pressed) {
@@ -212,10 +220,26 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return true;
         }
     }
-    if (get_oneshot_layer() == numpad_layer) {
-        num_lock_timer = 0;
-        // make sure to turn off the layer, doesn't always get turned off
-        clear_oneshot_layer_state(ONESHOT_PRESSED);
+    switch (keycode) {
+    case KC_PDOT:
+    case KC_PPLS:
+    case KC_PMNS:
+    case KC_PSLS:
+    case KC_PAST:
+    case KC_EQL: // KC_PEQL is not usable?
+    case KC_DOT:
+    case KC_PLUS:
+    case KC_1 ... KC_0:
+        break;
+    default:
+        if (get_oneshot_layer() == numpad_layer) {
+            clear_oneshot_layer_state(ONESHOT_PRESSED);
+            layer_off(numpad_layer);
+            if (host_keyboard_led_state().num_lock) {
+                tap_code(KC_NUM);
+            }
+        }
+        break;
     }
 
     return true;
@@ -233,5 +257,9 @@ void matrix_scan_user(void) {
     if (num_lock_timer && timer_elapsed(num_lock_timer) > NUMLOCK_TIMEOUT) {
         num_lock_timer = 0;
         clear_oneshot_layer_state(ONESHOT_PRESSED);
+        layer_off(numpad_layer); // clear above isn't enough?
+        if (host_keyboard_led_state().num_lock) {
+            tap_code(KC_NUM);
+        }
     }
 }
