@@ -4,14 +4,17 @@
 #define NUMLOCK_TIMEOUT 800
 
 uint8_t numpad_layer = 1;
-uint8_t sym_layer = 2;
-uint8_t mouse_layer = 5;
-bool is_scrolling = false;
-
 uint16_t num_lock_timer = 0;
 uint8_t mod_held = KC_NO;
 
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+    if (IS_QK_LAYER_TAP(keycode)) {
+        switch (QK_LAYER_TAP_GET_TAP_KEYCODE(keycode)) {
+            case KC_BSPC:
+            case KC_ESC:
+                return true;
+        }
+    }
     switch (keycode) {
         case RCTL_T(KC_QUOT):
         // these for chocofi
@@ -24,10 +27,13 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
-    if (keycode == LT(numpad_layer, KC_BSPC)
-     || keycode == LT(sym_layer, KC_ESC)
-     || keycode == LT(mouse_layer, KC_QUOT))
-        return true;
+    if (IS_QK_LAYER_TAP(keycode)) {
+        switch (QK_LAYER_TAP_GET_TAP_KEYCODE(keycode)) {
+            case KC_BSPC:
+            case KC_ESC:
+                return true;
+        }
+    }
 
     switch (keycode) {
         case LSFT_T(KC_Z):
@@ -39,16 +45,16 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
-bool get_tapping_force_hold(uint16_t keycode, keyrecord_t *record) {
-    if (keycode == LT(sym_layer, KC_ESC))
-        return true;
+uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
+    if (IS_QK_LAYER_TAP(keycode) && QK_LAYER_TAP_GET_TAP_KEYCODE(keycode) == KC_ESC)
+        return 0;
 
     switch (keycode) {
         case LSFT_T(KC_Z):
         case RSFT_T(KC_SLSH):
-            return true;
+            return 0;
         default:
-            return false;
+            return QUICK_TAP_TERM;
     }
 }
 
@@ -146,8 +152,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (IS_QK_ONE_SHOT_LAYER(keycode) && QK_ONE_SHOT_LAYER_GET_LAYER(keycode) == numpad_layer) {
         if (record->event.pressed && !host_keyboard_led_state().num_lock) {
             tap_code(KC_NUM);
-            num_lock_timer = timer_read();
         }
+        num_lock_timer = timer_read();
         return true;
     }
 
@@ -184,7 +190,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         break;
 
-
     /*
     case KC_SPC: // shift-spc = _
         if (mod_state & MOD_MASK_SHIFT) {
@@ -219,26 +224,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return true;
         }
     }
-    switch (keycode) {
-    case KC_PDOT:
-    case KC_PPLS:
-    case KC_PMNS:
-    case KC_PSLS:
-    case KC_PAST:
-    case KC_EQL: // KC_PEQL is not usable?
-    case KC_DOT:
-    case KC_1 ... KC_0:
-        break;
-    default:
-        if (get_oneshot_layer() == numpad_layer) {
-            clear_oneshot_layer_state(ONESHOT_PRESSED);
-            layer_off(numpad_layer);
-            if (host_keyboard_led_state().num_lock) {
-                tap_code(KC_NUM);
-            }
-        }
-        break;
-    }
 
     return true;
 };
@@ -247,17 +232,22 @@ void oneshot_layer_changed_user(uint8_t layer) {
     // set oneshot layer back on when it gets turned off by keypress
     if (!layer && num_lock_timer) {
         set_oneshot_layer(numpad_layer, ONESHOT_START);
+        clear_oneshot_layer_state(ONESHOT_PRESSED);
     }
 }
 
-void matrix_scan_user(void) {
+void housekeeping_task_user(void) {
     // time out the numpad osl
-    if (num_lock_timer && timer_elapsed(num_lock_timer) > NUMLOCK_TIMEOUT) {
-        num_lock_timer = 0;
-        clear_oneshot_layer_state(ONESHOT_PRESSED);
-        layer_off(numpad_layer); // clear above isn't enough?
-        if (host_keyboard_led_state().num_lock) {
-            tap_code(KC_NUM);
+    if (get_oneshot_layer() == numpad_layer) {
+        if (!num_lock_timer || timer_elapsed(num_lock_timer) > NUMLOCK_TIMEOUT) {
+            num_lock_timer = 0;
+            reset_oneshot_layer();
+            layer_off(numpad_layer); // clear above isn't enough?
+            if (host_keyboard_led_state().num_lock) {
+                tap_code(KC_NUM);
+            }
         }
+    } else if (host_keyboard_led_state().num_lock) {
+        tap_code(KC_NUM);
     }
 }
