@@ -26,6 +26,7 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
+uint32_t shift_quicktap_timer = 0;
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     if (IS_QK_LAYER_TAP(keycode)) {
         switch (QK_LAYER_TAP_GET_TAP_KEYCODE(keycode)) {
@@ -39,7 +40,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
         case LSFT_T(KC_Z):
         case LCTL_T(KC_TAB):
         case RSFT_T(KC_SLSH):
-            return true;
+            return timer_elapsed32(shift_quicktap_timer) > QUICK_TAP_TERM;
         default:
             return false;
     }
@@ -52,7 +53,7 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case LSFT_T(KC_Z):
         case RSFT_T(KC_SLSH):
-            return 0;
+            return timer_elapsed32(shift_quicktap_timer) > QUICK_TAP_TERM ? 0 : QUICK_TAP_TERM;
         default:
             return QUICK_TAP_TERM;
     }
@@ -155,6 +156,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         num_lock_timer = timer_read();
         return true;
+    }
+
+    uint8_t base_kc = GET_TAP_KC(keycode);
+    switch (base_kc) {
+        case KC_A ... KC_Z:
+        case KC_SLASH:
+            shift_quicktap_timer = timer_read32();
     }
 
     process_caps_word(keycode, record);
