@@ -162,7 +162,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (base_kc) {
         case KC_A ... KC_Z:
         case KC_SLASH:
-            shift_quicktap_timer = timer_read32();
+            if (!record->event.pressed)
+                shift_quicktap_timer = timer_read32();
     }
 
     process_caps_word(keycode, record);
