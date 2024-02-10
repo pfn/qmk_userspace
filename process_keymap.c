@@ -1,12 +1,13 @@
 #include QMK_KEYBOARD_H
 #include "process_keymap.h"
 
-#define NUMLOCK_TIMEOUT 800
+#define NUMLOCK_TIMEOUT 5000
 
 uint8_t numpad_layer = 1;
 uint16_t num_lock_timer = 0;
 uint8_t mod_held = KC_NO;
 
+void cleanup_numlock(bool);
 bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     if (IS_QK_LAYER_TAP(keycode)) {
         switch (QK_LAYER_TAP_GET_TAP_KEYCODE(keycode)) {
@@ -150,6 +151,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         unregister_code(mod_held);
         mod_held = KC_NO;
     }
+
+    if (host_keyboard_led_state().num_lock) {
+        if (keycode == KC_ESC && record->event.pressed) {
+            cleanup_numlock(false);
+            return false;
+        }
+    }
     if (IS_QK_ONE_SHOT_LAYER(keycode) && QK_ONE_SHOT_LAYER_GET_LAYER(keycode) == numpad_layer) {
         if (record->event.pressed && !host_keyboard_led_state().num_lock) {
             tap_code(KC_NUM);
@@ -247,8 +255,12 @@ void oneshot_layer_changed_user(uint8_t layer) {
 
 void housekeeping_task_user(void) {
     // time out the numpad osl
+    cleanup_numlock(true);
+}
+
+void cleanup_numlock(bool check_timer) {
     if (get_oneshot_layer() == numpad_layer) {
-        if (!num_lock_timer || timer_elapsed(num_lock_timer) > NUMLOCK_TIMEOUT) {
+        if (!num_lock_timer || !check_timer || timer_elapsed(num_lock_timer) > NUMLOCK_TIMEOUT) {
             num_lock_timer = 0;
             reset_oneshot_layer();
             layer_off(numpad_layer); // clear above isn't enough?
