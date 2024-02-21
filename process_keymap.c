@@ -129,10 +129,8 @@ void process_caps_word(uint16_t keycode, const keyrecord_t *record) {
             case KC_UNDS:
             case KC_PIPE:
             case KC_CAPS:
-            case KC_LPRN:
-            case KC_RPRN:
                 // If chording mods, disable caps word
-                if (record->event.pressed && (get_mods() != MOD_LSFT) && (get_mods() != 0)) {
+                if (record->event.pressed && get_mods() && !(get_mods() & MOD_MASK_SHIFT)) {
                     caps_word_disable();
                 }
                 break;
